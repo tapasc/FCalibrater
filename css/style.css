@@ -1,0 +1,23 @@
+/*Wrapper css*/
+
+#FCalibrater {
+    width: 1000px;
+    height: 200px;
+    margin: 120px auto;
+    border: 2px solid seagreen;
+    border-radius: 4px;
+    overflow: hidden;
+    position: absolute;
+    left: 240px;
+    top: 37px;
+}
+
+#FCalibrater>div {
+    padding: 3px;
+    text-align: left;
+    font-size: 17px;
+}
+
+.FCalibrater-overflow {
+    overflow: auto !important;
+}
