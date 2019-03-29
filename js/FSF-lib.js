@@ -10,13 +10,13 @@
 
     var FALib = function (wrapper, conf) {
 
-        this.isipad = undefined;
         this.scroll = undefined;
         this.isScrollHeight = false;
         this.scrollWrapper = _doc.querySelector(wrapper);
 
         this.config = {
-            maxScrollheight: conf.maxScrollheight
+            maxScrollheight: conf.maxScrollheight,
+            fontCalibration: conf.fontCalibration
         };
 
         this.init();
@@ -37,15 +37,20 @@
 
     FALib.prototype.detectuserAgent = function () {
         var ua = navigator.userAgent;
-        this.isipad = /iPad/i.test(ua);
+        var isipad = /iPad/i.test(ua);
+
+        if (isipad) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 
     FALib.prototype.applyScroll = function () {
-        var _self = this;
-        if (this.isipad) {
-            this.scroll = new iScroll(this.scrollWrapper, { mouseWheel: true, scrollbars: true });
-            resetScrollPos.call(this);
+        if (this.detectuserAgent()) {
+            this.scroll = new iScroll(this.scrollWrapper, { mouseWheel: true, scrollbars: true, click: true });
+            refreshScroll.call(this);
         } else {
             this.scrollWrapper.classList.add("FCalibrater-overflow");
         }
@@ -53,30 +58,31 @@
     FALib.prototype.onUpdate = function () {
 
         var currHeight = _scrollHeight = this.scrollWrapper.children[0].scrollHeight;
+        console.log(this.scrollWrapper.children[0].scrollHeight);
+        console.log(this.scrollWrapper.children[0]);
+
         this.isScrollHeight = (parseInt(currHeight) <= parseInt(this.config.maxScrollheight)) ? true : false;
     }
 
     FALib.prototype.reduceFontSize = function () {
-
         var _self = this;
-
         var reduceBy = 0;
-        _nInterval = setInterval(function () {
 
-            if ((_self.isScrollHeight) || (reduceBy >= _fontList.length)) {
-                reduceBy = 0;
-                clearInterval(_nInterval);
-            } else {                
-                var elem = _self.scrollWrapper.children[0];
-                elem.style.fontSize = _fontList[reduceBy] + "px";
-                _self.onUpdate();
-                reduceBy++;
-
-            }
-        }, 2);
-
+        if (this.config.fontCalibration === true) {
+            _nInterval = setInterval(function () {
+                if ((_self.isScrollHeight) || (reduceBy >= _fontList.length)) {
+                    reduceBy = 0;
+                    showResizedContent.call(_self);
+                    clearInterval(_nInterval);
+                } else {
+                    var elem = _self.scrollWrapper.children[0];
+                    elem.style.fontSize = _fontList[reduceBy] + "px";
+                    _self.onUpdate();
+                    reduceBy++;
+                }
+            }, 20);
+        }
         this.applyScroll();
-        return this;
     }
 
     FALib.prototype.getScrollHeight = function () {
@@ -86,15 +92,24 @@
     FALib.prototype.destroy = function () {
         delete this.scroll;
         this.scroll = null;
+
+        _scrollHeight = 0;        
+        _nInterval = undefined;        
+        this.config = undefined;
+        this.scroll = undefined;
+        this.isScrollHeight = false;
+        this.scrollWrapper = undefined;
     }
 
-    function resetScrollPos() {
+    function refreshScroll() {
         var _Self = this;
         setTimeout(function () {
             _Self.scroll.refresh();
-        }, 500);
+        }, 200);
     }
-
+    function showResizedContent() {
+        this.scrollWrapper.children[0].style.visibility = "visible";
+    }
     _win.FALib = FALib;
 
 })(window, IScroll)
@@ -105,6 +120,6 @@
 
 
 
-
-var scroller = new FALib("#FCalibrater", { "maxScrollheight": 200 });
-scroller.reduceFontSize().destroy();
+/**------Demo code-------------*/
+// var scroller = new FALib("#FCalibrater", { "maxScrollheight": 200,"noFontReduction":false });
+// scroller.reduceFontSize().destroy();
